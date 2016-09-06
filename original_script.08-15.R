@@ -1,5 +1,4 @@
 #set working direcotry
-#setwd("P:/Willam/new BiOp/HRME Chinook/HewlettProjects/R/Foster temp")
 setwd("~/R/Foster temp")
 
 #check/install packages

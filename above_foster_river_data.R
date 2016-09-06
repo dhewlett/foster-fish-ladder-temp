@@ -36,6 +36,6 @@ names(USGS_ssnt)[6] <- "temp_3"
 USGS_ssnt$mean <- rowMeans(subset(USGS_ssnt,select=c(temp_1,temp_2,temp_3)))
 USGS_ssnt <- subset(USGS_ssnt,select=c(DateTime,mean))
 
-
+file.remove("USGS_above_foster_res.xlsx")
 
 
