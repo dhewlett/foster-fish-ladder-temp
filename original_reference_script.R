@@ -1,6 +1,3 @@
-#set working direcotry
-setwd("~/R/Foster temp")
-
 #check/install packages
 packages <- c("reshape2", "lubridate", "scales", "ggplot2")
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
