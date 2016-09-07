@@ -1,14 +1,12 @@
-###packages needs cleanup###
+##################
+###Env/Packages###
+##################
 
-#install.packages ("plyr")
-#install.packages ("xlsx")
-#install.packages ("RCurl")
-#install.packages("rjson")
-#install.packages("reshape2")
-#install.packages("htmltab")
-#install.packages("reshape")
-#install.packages("reshape2")
-#install.packages("zoo")
+packages <- c("plyr", "xlsx", "RCurl", "rjson", "htmltab", "reshape", "reshape2", "zoo")
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))}
+rm(packages)
+
 library(htmltab)
 library(reshape)
 library(reshape2)
@@ -177,11 +175,26 @@ foster_string_data <- aggregate(value~Date+variable,data=foster_string_data, FUN
 #write.csv(foster_string_data,"foster_string_data_BACKUP.csv")
 #read.csv ("foster_string_data_BACKUP.csv", header=TRUE) -> foster_string_data
 
-#######################
-###Comiling/Analysis###
-#######################
+########################
+###Compiling/Analysis###
+########################
 #create intake height column
 foster_forebay_ht$intake <- ifelse(foster_forebay_ht$timestamp<"2014-04-01",foster_forebay_ht$ht-600,foster_forebay_ht$ht-585)
 #if height was the same as old...
-#height$intake <- height$Data-600
+#foster_forebay_ht$intake <- foster_forebay_ht$ht-600
+
+####!!!!wrong!!!!!!####
+#assign temp string data point to intake height
+height$temp.column <- 
+  ifelse(height$intake<2.75,"X0.5ft",
+         ifelse(height$intake<7.5,"X5ft",
+                ifelse(height$intake<12.5,"X10ft",
+                       ifelse(height$intake<17.5,"X20ft",
+                              ifelse(height$intake<25,"X20ft",
+                                     ifelse(height$intake<35,"X30ft",
+                                            ifelse(height$intake<45,"X40ft",
+                                                   ifelse(height$intake<55,"X50ft",
+                                                          ifelse(height$intake<65,"X60ft",
+                                                                 ifelse(height$intake<75,"X70ft","X80ft"
+                                                                        ))))))))))
 
