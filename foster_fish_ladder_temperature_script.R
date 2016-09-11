@@ -101,17 +101,20 @@ read.csv ("foster_string_urls.csv", header=TRUE) -> foster_string_urls
 foster_string_data <- htmltab(doc = "http://www.nwd-wc.usace.army.mil/ftppub/water_quality/tempstrings/FOS_S1_2010_09.html",header = 1,which=3)
 foster_string_data <- foster_string_data[NULL,]
 
-#download and compile data
-#this will download data between 9/2010 and 12/2018, and is based on foster_string_urls.csv
-#some data won't exist yet, so there will be errors when the script tries to download pages that don't exist
-for(i in 1:nrow(foster_string_urls)) {
-  row <- foster_string_urls[i,]
-  url <- paste(row$url,sep = "")
-  #assign(paste("fos_str_",row$y,"_", row$m, sep = ""),htmltab(doc = url,header = 1,which=3))
-  #df_list <- rbind(df_list,paste("fos_str_",row$y,"_", row$m, sep = ""))
-  foster_string_data <- rbind(foster_string_data,htmltab(doc = url,header = 1,which=3))
-}
-rm(i,url,row)
+#use this line to read previously downloaded data. If no data exists run the indented code block.
+#read.csv ("foster_string_data_BACKUP.csv", header=TRUE) -> foster_string_data
+
+  #download and compile data
+  #this will download data between 9/2010 and 12/2018, and is based on foster_string_urls.csv
+  #some data won't exist yet, so there will be errors when the script tries to download pages that don't exist
+  for(i in 1:nrow(foster_string_urls)) {
+    row <- foster_string_urls[i,]
+    url <- paste(row$url,sep = "")
+    #assign(paste("fos_str_",row$y,"_", row$m, sep = ""),htmltab(doc = url,header = 1,which=3))
+    #df_list <- rbind(df_list,paste("fos_str_",row$y,"_", row$m, sep = ""))
+    foster_string_data <- rbind(foster_string_data,htmltab(doc = url,header = 1,which=3))
+  }
+  rm(i,url,row)
 
 #set NA's
 foster_string_data[ foster_string_data == "-" ] = NA
@@ -174,7 +177,7 @@ foster_string_data <- melt(foster_string_data,id.vars="Date")
 #average temp by date and height
 foster_string_data <- aggregate(value~Date+variable,data=foster_string_data, FUN="mean")
 
-#write.csv(foster_string_data,"foster_string_data_BACKUP.csv")
+write.csv(foster_string_data,"foster_string_data_BACKUP.csv")
 #read.csv ("foster_string_data_BACKUP.csv", header=TRUE) -> foster_string_data
 
 ##############
