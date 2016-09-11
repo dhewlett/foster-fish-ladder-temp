@@ -1,3 +1,6 @@
 .Rproj.user
 .Rhistory
 .RData
+.gitignore
+foster_string_data_BACKUP.csv
+shiny_connection_info.R

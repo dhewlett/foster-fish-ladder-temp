@@ -1,6 +1,6 @@
-##################
-###Env/Packages###
-##################
+##########################
+###Environment/Packages###
+##########################
 
 packages <- c("plyr", "xlsx", "RCurl", "rjson", "htmltab", "reshape", "reshape2", "zoo")
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
@@ -40,14 +40,16 @@ USGS_ssnt <- read.xlsx(file="USGS_above_foster_res.xlsx",sheetName="14185000",he
 names(USGS_mfsnt)[2] <- "temp_1"
 names(USGS_mfsnt)[4] <- "temp_2"
 names(USGS_mfsnt)[6] <- "temp_3"
-USGS_mfsnt$mean <- rowMeans(subset(USGS_mfsnt,select=c(temp_1,temp_2,temp_3)))
-USGS_mfsnt <- subset(USGS_mfsnt,select=c(DateTime,mean))
+USGS_mfsnt$temp <- rowMeans(subset(USGS_mfsnt,select=c(temp_1,temp_2,temp_3)))
+USGS_mfsnt <- subset(USGS_mfsnt,select=c(DateTime,temp))
+USGS_mfsnt$DateTime <- as.Date(USGS_mfsnt$DateTime, format="%Y-%m-%d")
 
 names(USGS_ssnt)[2] <- "temp_1"
 names(USGS_ssnt)[4] <- "temp_2"
 names(USGS_ssnt)[6] <- "temp_3"
-USGS_ssnt$mean <- rowMeans(subset(USGS_ssnt,select=c(temp_1,temp_2,temp_3)))
-USGS_ssnt <- subset(USGS_ssnt,select=c(DateTime,mean))
+USGS_ssnt$temp <- rowMeans(subset(USGS_ssnt,select=c(temp_1,temp_2,temp_3)))
+USGS_ssnt <- subset(USGS_ssnt,select=c(DateTime,temp))
+USGS_ssnt$DateTime <- as.Date(USGS_ssnt$DateTime, format="%Y-%m-%d")
 
 file.remove("USGS_above_foster_res.xlsx")
 
@@ -175,26 +177,63 @@ foster_string_data <- aggregate(value~Date+variable,data=foster_string_data, FUN
 #write.csv(foster_string_data,"foster_string_data_BACKUP.csv")
 #read.csv ("foster_string_data_BACKUP.csv", header=TRUE) -> foster_string_data
 
-########################
-###Compiling/Analysis###
-########################
+##############
+###Analysis###
+##############
 #create intake height column
-foster_forebay_ht$intake <- ifelse(foster_forebay_ht$timestamp<"2014-04-01",foster_forebay_ht$ht-600,foster_forebay_ht$ht-585)
+foster_forebay_ht$intake_ht <- ifelse(foster_forebay_ht$timestamp<"2014-04-01",foster_forebay_ht$ht-600,foster_forebay_ht$ht-585)
 #if height was the same as old...
 #foster_forebay_ht$intake <- foster_forebay_ht$ht-600
 
-####!!!!wrong!!!!!!####
 #assign temp string data point to intake height
-height$temp.column <- 
-  ifelse(height$intake<2.75,"X0.5ft",
-         ifelse(height$intake<7.5,"X5ft",
-                ifelse(height$intake<12.5,"X10ft",
-                       ifelse(height$intake<17.5,"X20ft",
-                              ifelse(height$intake<25,"X20ft",
-                                     ifelse(height$intake<35,"X30ft",
-                                            ifelse(height$intake<45,"X40ft",
-                                                   ifelse(height$intake<55,"X50ft",
-                                                          ifelse(height$intake<65,"X60ft",
-                                                                 ifelse(height$intake<75,"X70ft","X80ft"
+foster_forebay_ht$intake_string_ht <- 
+  ifelse(foster_forebay_ht$intake_ht<2.75,"X0.5ft",
+         ifelse(foster_forebay_ht$intake_ht<7.5,"X5ft",
+                ifelse(foster_forebay_ht$intake_ht<12.5,"X10ft",
+                       ifelse(foster_forebay_ht$intake_ht<17.5,"X15ft",
+                              ifelse(foster_forebay_ht$intake_ht<25,"X20ft",
+                                     ifelse(foster_forebay_ht$intake_ht<35,"X30ft",
+                                            ifelse(foster_forebay_ht$intake_ht<45,"X40ft",
+                                                   ifelse(foster_forebay_ht$intake_ht<55,"X50ft",
+                                                          ifelse(foster_forebay_ht$intake_ht<65,"X60ft",
+                                                                 ifelse(foster_forebay_ht$intake_ht<75,"X70ft","X80ft"
                                                                         ))))))))))
+#merge temp data with height data based on timestamp AND temp string height
+intake_temp <- merge(x=foster_forebay_ht,y=foster_string_data,by.x=c("timestamp","intake_string_ht"),by.y=c("Date","variable"),all.x = TRUE)
+#rm(string.temp,height)
 
+#rename columns
+intake_temp$forebay_ht <- intake_temp$ht
+intake_temp$date <- intake_temp$timestamp
+intake_temp$DateTime <- intake_temp$date
+intake_temp$intake_temp <- intake_temp$value
+intake_temp <-subset(intake_temp,select=c("DateTime","intake_temp"))
+
+#merge three data sets based on date
+plot_data <- merge(x=USGS_mfsnt, y=USGS_ssnt, by='DateTime',all=TRUE)
+plot_data <- merge(x=plot_data, y=intake_temp, by.x='DateTime', by.y='DateTime', all=TRUE)
+
+#rename columns
+plot_data$mfsnt <- plot_data$temp.x
+plot_data$ssnt <- plot_data$temp.y
+plot_data <-subset(plot_data,select=c("DateTime","mfsnt","ssnt","intake_temp"))
+
+write.csv(plot_data,"foster_fish_ladder_temp_data.csv")
+#read.csv ("foster_fish_ladder_temp_data.csv", header=TRUE) -> plot_data
+
+###############
+##Sample plot##
+###############
+library(ggplot2)
+
+ggplot(data=plot_data, aes(x=DateTime))+
+  geom_line(aes(y=intake_temp, colour='Foster ladder intake'))+
+  geom_line(aes(y=ssnt, colour='South Santiam at Cascadia'))+
+  geom_line(aes(y=mfsnt, colour='Middle Santiam below Green Peter'))+ 
+  
+  xlab("Date")+
+  ylab("Temp (C)")+
+  scale_colour_discrete(name="Source")+
+  theme(panel.grid.major = element_line(colour = ),
+        panel.grid.minor = element_line(colour = ))+
+  geom_vline(xintercept = as.numeric(as.Date("2014-04-01")))
