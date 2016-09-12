@@ -222,12 +222,12 @@ plot_data$ssnt <- plot_data$temp.y
 plot_data <-subset(plot_data,select=c("DateTime","mfsnt","ssnt","intake_temp"))
 
 write.csv(plot_data,"foster_fish_ladder_temp_data.csv")
-#read.csv ("foster_fish_ladder_temp_data.csv", header=TRUE) -> plot_data
+#plot_data <- subset(read.csv ("foster_fish_ladder_temp_data.csv", header=TRUE),select=c("DateTime","mfsnt","ssnt","intake_temp"))
 
 ###############
 ##Sample plot##
 ###############
-library(ggplot2)
+library('ggplot2')
 
 ggplot(data=plot_data, aes(x=DateTime))+
   geom_line(aes(y=intake_temp, colour='Foster ladder intake'))+
