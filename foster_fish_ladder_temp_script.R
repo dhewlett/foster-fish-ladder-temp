@@ -221,22 +221,34 @@ plot_data$mfsnt <- plot_data$temp.x
 plot_data$ssnt <- plot_data$temp.y
 plot_data <-subset(plot_data,select=c("DateTime","mfsnt","ssnt","intake_temp"))
 
+#remove assumed erronious data and irrelevant data.
+plot_data$intake_temp <- ifelse(plot_data$DateTime>"2014-01-23" & plot_data$DateTime<"2014-01-30",NA,plot_data$intake_temp)
+plot_data$intake_temp <- ifelse(plot_data$DateTime>"2015-04-07" & plot_data$DateTime<"2015-05-21",NA,plot_data$intake_temp)
+plot_data$intake_temp <- ifelse(plot_data$DateTime>"2015-03-02" & plot_data$DateTime<"2015-03-13",NA,plot_data$intake_temp)
+plot_data <- subset(plot_data,DateTime>as.Date("2010-01-01"))
+
+#output csv as backup
 write.csv(plot_data,"foster_fish_ladder_temp_data.csv")
+rm(foster_forebay_ht, foster_string_data, intake_temp, USGS_mfsnt, USGS_ssnt)
+
 #plot_data <- subset(read.csv ("foster_fish_ladder_temp_data.csv", header=TRUE),select=c("DateTime","mfsnt","ssnt","intake_temp"))
+#plot_data$DateTime <- as.Date(plot_data$DateTime, format="%Y-%m-%d")
 
 ###############
 ##Sample plot##
 ###############
-library('ggplot2')
 
 ggplot(data=plot_data, aes(x=DateTime))+
   geom_line(aes(y=intake_temp, colour='Foster ladder intake'))+
   geom_line(aes(y=ssnt, colour='South Santiam at Cascadia'))+
   geom_line(aes(y=mfsnt, colour='Middle Santiam below Green Peter'))+ 
-  
+  scale_y_continuous(breaks=seq(0, 25, 2))+
   xlab("Date")+
   ylab("Temp (C)")+
   scale_colour_discrete(name="Source")+
-  theme(panel.grid.major = element_line(colour = ),
-        panel.grid.minor = element_line(colour = ))+
-  geom_vline(xintercept = as.numeric(as.Date("2014-04-01")))
+  scale_x_date(date_breaks = "3 month",date_labels = "%b -%y")+
+  #theme(panel.grid.major = element_line(colour = 1),
+  #      panel.grid.minor = element_line(colour = 2))+
+  geom_vline(xintercept = as.numeric(as.Date("2014-04-01")), linetype="dashed", 
+             color = "red", size=1.25)
+
