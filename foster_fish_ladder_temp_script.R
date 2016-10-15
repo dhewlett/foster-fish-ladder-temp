@@ -15,6 +15,7 @@ library(rjson)
 library(plyr)
 library(xlsx)
 library(RCurl)
+library(ggplot2)
 
 #####################
 ###River temp data###
@@ -101,20 +102,30 @@ read.csv ("foster_string_urls.csv", header=TRUE) -> foster_string_urls
 foster_string_data <- htmltab(doc = "http://www.nwd-wc.usace.army.mil/ftppub/water_quality/tempstrings/FOS_S1_2010_09.html",header = 1,which=3)
 foster_string_data <- foster_string_data[NULL,]
 
-#use this line to read previously downloaded data. If no data exists run the indented code block.
-#read.csv ("foster_string_data_BACKUP.csv", header=TRUE) -> foster_string_data
+#download and compile data
+#this will download data between 9/2010 and 12/2018, and is based on foster_string_urls.csv
+#some data won't exist yet, so there will be errors when the script tries to download pages that don't exist
+for(i in 1:nrow(foster_string_urls)) {
+  row <- foster_string_urls[i,]
+  url <- paste(row$url,sep = "")
+  #assign(paste("fos_str_",row$y,"_", row$m, sep = ""),htmltab(doc = url,header = 1,which=3))
+  #df_list <- rbind(df_list,paste("fos_str_",row$y,"_", row$m, sep = ""))
+  foster_string_data <- rbind(foster_string_data,htmltab(doc = url,header = 1,which=3))
+}
+rm(i,url,row)
 
-  #download and compile data
-  #this will download data between 9/2010 and 12/2018, and is based on foster_string_urls.csv
-  #some data won't exist yet, so there will be errors when the script tries to download pages that don't exist
-  for(i in 1:nrow(foster_string_urls)) {
-    row <- foster_string_urls[i,]
-    url <- paste(row$url,sep = "")
-    #assign(paste("fos_str_",row$y,"_", row$m, sep = ""),htmltab(doc = url,header = 1,which=3))
-    #df_list <- rbind(df_list,paste("fos_str_",row$y,"_", row$m, sep = ""))
-    foster_string_data <- rbind(foster_string_data,htmltab(doc = url,header = 1,which=3))
-  }
-  rm(i,url,row)
+#fix column names to have preceding X, this makes the code work when importing from CSV vs regularly downloaded
+colnames(foster_string_data)[3]<- "X0.5ft"
+colnames(foster_string_data)[4]<- "X5ft"
+colnames(foster_string_data)[5]<- "X10ft"
+colnames(foster_string_data)[6]<- "X15ft"
+colnames(foster_string_data)[7]<- "X20ft"
+colnames(foster_string_data)[8]<- "X30ft"
+colnames(foster_string_data)[9]<- "X40ft"
+colnames(foster_string_data)[10]<- "X50ft"
+colnames(foster_string_data)[11]<- "X60ft"
+colnames(foster_string_data)[12]<- "X70ft"
+colnames(foster_string_data)[13]<- "X80ft"
 
 #set NA's
 foster_string_data[ foster_string_data == "-" ] = NA
@@ -129,7 +140,7 @@ foster_string_data$Date <- na.locf(foster_string_data$Date,na.rm=FALSE)
 
 #keep just date
 foster_string_data$Date <- as.Date(foster_string_data$Date, format="%m/%d/%Y")
-foster_string_data <- subset (foster_string_data,select = -c(Time,X))
+foster_string_data <- subset (foster_string_data,select = -c(Time))
 
 #convert temps from "factor" to "numeric"
 foster_string_data$X0.5ft <- as.numeric(as.character(foster_string_data$X0.5ft))
@@ -177,8 +188,12 @@ foster_string_data <- melt(foster_string_data,id.vars="Date")
 #average temp by date and height
 foster_string_data <- aggregate(value~Date+variable,data=foster_string_data, FUN="mean")
 
-write.csv(foster_string_data,"foster_string_data_BACKUP.csv")
+#write.csv(foster_string_data,"foster_string_data_BACKUP.csv")
+
+#use these line to read previously downloaded data.
 #read.csv ("foster_string_data_BACKUP.csv", header=TRUE) -> foster_string_data
+#foster_string_data <- subset (foster_string_data,select = -c(X))
+#foster_string_data$Date <- as.Date(foster_string_data$Date, format="%Y-%m-%d")
 
 ##############
 ###Analysis###
@@ -186,7 +201,8 @@ write.csv(foster_string_data,"foster_string_data_BACKUP.csv")
 #create intake height column
 foster_forebay_ht$intake_ht <- ifelse(foster_forebay_ht$timestamp<"2014-04-01",foster_forebay_ht$ht-600,foster_forebay_ht$ht-585)
 #if height was the same as old...
-#foster_forebay_ht$intake <- foster_forebay_ht$ht-600
+#foster_forebay_ht$intake_ht <- foster_forebay_ht$ht-600
+#foster_forebay_ht$intake_ht <- foster_forebay_ht$ht
 
 #assign temp string data point to intake height
 foster_forebay_ht$intake_string_ht <- 
@@ -228,8 +244,10 @@ plot_data$intake_temp <- ifelse(plot_data$DateTime>"2015-03-02" & plot_data$Date
 plot_data <- subset(plot_data,DateTime>as.Date("2010-01-01"))
 
 #output csv as backup
-write.csv(plot_data,"foster_fish_ladder_temp_data.csv")
-rm(foster_forebay_ht, foster_string_data, intake_temp, USGS_mfsnt, USGS_ssnt)
+#write.csv(plot_data,"foster_fish_ladder_temp_data.csv")
+
+#cleanup
+#rm(foster_forebay_ht, foster_string_data, intake_temp, USGS_mfsnt, USGS_ssnt)
 
 #plot_data <- subset(read.csv ("foster_fish_ladder_temp_data.csv", header=TRUE),select=c("DateTime","mfsnt","ssnt","intake_temp"))
 #plot_data$DateTime <- as.Date(plot_data$DateTime, format="%Y-%m-%d")
