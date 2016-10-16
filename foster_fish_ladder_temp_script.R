@@ -188,7 +188,7 @@ foster_string_data <- melt(foster_string_data,id.vars="Date")
 #average temp by date and height
 foster_string_data <- aggregate(value~Date+variable,data=foster_string_data, FUN="mean")
 
-#write.csv(foster_string_data,"foster_string_data_BACKUP.csv")
+write.csv(foster_string_data,"foster_string_data_BACKUP.csv")
 
 #use these line to read previously downloaded data.
 #read.csv ("foster_string_data_BACKUP.csv", header=TRUE) -> foster_string_data
