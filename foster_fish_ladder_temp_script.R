@@ -158,7 +158,7 @@ foster_string_data$X80ft<- as.numeric(as.character(foster_string_data$X80ft))
 ###string temps need boundaries because they aren't as clean as USGS data
 #omit string temps over 40C
 foster_string_data$X0.5ft <- as.numeric(ifelse(foster_string_data$X0.5ft>25,NA,foster_string_data$X0.5ft))
-foster_string_data$X5ft <- as.numeric(ifelse(foster_string_data$X0.5ft>25,NA,foster_string_data$X5ft))
+foster_string_data$X5ft <- as.numeric(ifelse(foster_string_data$X5ft>25,NA,foster_string_data$X5ft))
 foster_string_data$X10ft <- as.numeric(ifelse(foster_string_data$X10ft>25,NA,foster_string_data$X10ft))
 foster_string_data$X15ft <- as.numeric(ifelse(foster_string_data$X15ft>25,NA,foster_string_data$X15ft))
 foster_string_data$X20ft <- as.numeric(ifelse(foster_string_data$X20ft>25,NA,foster_string_data$X20ft))
@@ -171,7 +171,7 @@ foster_string_data$X80ft <- as.numeric(ifelse(foster_string_data$X80ft>25,NA,fos
 
 #omit string temps under 0C
 foster_string_data$X0.5ft <- as.numeric(ifelse(foster_string_data$X0.5ft<0,NA,foster_string_data$X0.5ft))
-foster_string_data$X5ft <- as.numeric(ifelse(foster_string_data$X0.5ft<0,NA,foster_string_data$X5ft))
+foster_string_data$X5ft <- as.numeric(ifelse(foster_string_data$X5ft<0,NA,foster_string_data$X5ft))
 foster_string_data$X10ft <- as.numeric(ifelse(foster_string_data$X10ft<0,NA,foster_string_data$X10ft))
 foster_string_data$X15ft <- as.numeric(ifelse(foster_string_data$X15ft<0,NA,foster_string_data$X15ft))
 foster_string_data$X20ft <- as.numeric(ifelse(foster_string_data$X20ft<0,NA,foster_string_data$X20ft))
@@ -202,6 +202,7 @@ foster_string_data <- aggregate(value~Date+variable,data=foster_string_data, FUN
 foster_forebay_ht$intake_ht <- ifelse(foster_forebay_ht$timestamp<"2014-04-01",foster_forebay_ht$ht-600,foster_forebay_ht$ht-585)
 #if height was the same as old...
 #foster_forebay_ht$intake_ht <- foster_forebay_ht$ht-600
+#foster_forebay_ht$intake_ht <- foster_forebay_ht$ht-585
 #foster_forebay_ht$intake_ht <- foster_forebay_ht$ht
 
 #assign temp string data point to intake height
